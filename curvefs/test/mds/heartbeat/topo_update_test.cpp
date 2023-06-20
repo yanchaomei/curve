@@ -187,21 +187,42 @@ TEST_F(TestTopoUpdater, test_UpdatePartitionTopo_case3) {
 // partition not in topology, but in heartbeat
 TEST_F(TestTopoUpdater, test_UpdatePartitionTopo_case4) {
     CopySetIdType copysetId = 1;
+    PoolIdType poolId = 2;
+    PartitionIdType partitionId = 3;
 
-    ::curvefs::mds::topology::Partition partition;
-    partition.SetStatus(PartitionStatus::DELETING);
+    // Partition for the topology
+    Partition partitionTopo;
+    partitionTopo.SetPartitionId(partitionId);
+    partitionTopo.SetStatus(PartitionStatus::DELETING);
 
-    std::list<::curvefs::mds::topology::Partition> topoPartitionList;
-    EXPECT_CALL(*topology_, GetPartitionInfosInCopyset(_))
+    // Partition for the heartbeat
+    Partition partitionHB;
+    partitionHB.SetPartitionId(partitionId);
+    partitionHB.SetStatus(PartitionStatus::DELETING);
+    partitionHB.SetPoolId(poolId);
+
+    std::list<Partition> topoPartitionList;
+    topoPartitionList.push_back(partitionTopo);
+
+    std::list<Partition> partitionList;
+    partitionList.push_back(partitionHB);
+
+    std::set<std::string> copysetMemberAddr = {"1.1.1.1", "2.2.2.2", "3.3.3.3"};
+
+    EXPECT_CALL(*topology_, GetPartitionInfosInCopyset(copysetId))
         .WillOnce(Return(topoPartitionList));
-
-    EXPECT_CALL(*topology_, GetPartition(_, _)).WillOnce(Return(false));
-
-    std::list<::curvefs::mds::topology::Partition> partitionList;
-    partitionList.push_back(partition);
+    EXPECT_CALL(*topology_, RemovePartition(partitionId))
+        .WillOnce(Return(TopoStatusCode::TOPO_OK));
+    EXPECT_CALL(*topology_, GetPartition(partitionId, _))
+        .WillOnce(Return(false));
+    EXPECT_CALL(*topologyManager_, GetCopysetMembers(poolId, copysetId, _))
+        .WillOnce(DoAll(SetArgPointee<2>(copysetMemberAddr), Return(TopoStatusCode::TOPO_OK)));
+    EXPECT_CALL(*metaserverClient_, DeletePartition(poolId, copysetId, partitionId, copysetMemberAddr))
+        .Times(1);
 
     updater_->UpdatePartitionTopo(copysetId, partitionList);
 }
+
 
 TEST_F(TestTopoUpdater, test_PartitionStatusAvailable) {
     ASSERT_TRUE(updater_->CanPartitionStatusChange(PartitionStatus::READWRITE,
