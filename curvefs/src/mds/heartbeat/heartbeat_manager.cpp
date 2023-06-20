@@ -44,11 +44,11 @@ HeartbeatManager::HeartbeatManager(
     const HeartbeatOption &option, const std::shared_ptr<Topology> &topology,
     const std::shared_ptr<Coordinator> &coordinator,
     const std::shared_ptr<TopologyManager> &topologyManager)
-    : topology_(topology), topologyManager_(topologyManager){
+    : topology_(topology) {
     healthyChecker_ =
         std::make_shared<MetaserverHealthyChecker>(option, topology);
 
-    topoUpdater_ = std::make_shared<TopoUpdater>(topology);
+    topoUpdater_ = std::make_shared<TopoUpdater>(topology, topologyManager);
 
     copysetConfGenerator_ = std::make_shared<CopysetConfGenerator>(
         topology, coordinator, option.mdsStartTime,
@@ -162,9 +162,8 @@ void HeartbeatManager::MetaServerHeartbeat(
         if (request.metaserverid() == reportCopySetInfo.GetLeader()) {
             topoUpdater_->UpdateCopysetTopo(reportCopySetInfo);
             if (!value.has_iscopysetloading() || !value.iscopysetloading()) {
-                topoUpdater_ onTopo(reportCopySetInfo.GetId(),
-                                                  partitionList,
-                                                  topologyManager_);
+                topoUpdater_->UpdatePartitionTopo(reportCopySetInfo.GetId(),
+                                                  partitionList);
             }
         }
     }

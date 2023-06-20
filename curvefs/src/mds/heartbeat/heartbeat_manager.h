@@ -144,7 +144,6 @@ class HeartbeatManager {
  private:
     // Dependencies of heartbeat
     std::shared_ptr<Topology> topology_;
-    std::shared_ptr<TopologyManager> topologyManager_;
     std::shared_ptr<Coordinator> coordinator_;
 
     // healthyChecker_ health checker running in background thread

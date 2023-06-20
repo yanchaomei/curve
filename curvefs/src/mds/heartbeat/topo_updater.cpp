@@ -176,8 +176,7 @@ bool TopoUpdater::CanPartitionStatusChange(PartitionStatus statusInTopo,
 
 void TopoUpdater::UpdatePartitionTopo(
     CopySetIdType copySetId,
-    const std::list<::curvefs::mds::topology::Partition>& partitionList,
-    const std::shared_ptr<TopologyManager>& topologyManager) {
+    const std::list<::curvefs::mds::topology::Partition>& partitionList) {
     std::list<::curvefs::mds::topology::Partition> topoPartitionList =
         topo_->GetPartitionInfosInCopyset(copySetId);
     // partition in topology, not in heartbeat
@@ -225,12 +224,12 @@ void TopoUpdater::UpdatePartitionTopo(
                          << ", partitionId = " << it.GetPartitionId();
             // get copyset members
             std::set<std::string> copysetMemberAddr;
-            auto ret = topologyManager->GetCopysetMembers(it.GetPoolId(), copySetId, &copysetMemberAddr);
+            auto ret = topologyManager_->GetCopysetMembers(it.GetPoolId(), copySetId, &copysetMemberAddr);
             if (ret != TopoStatusCode::TOPO_OK) {
                 LOG(ERROR) << "GetCopysetMembers failed, poolId = " << it.GetPoolId()
                         << ", copysetId = " << copySetId;
             }
-            topologyManager->GetMetaserverClient()->DeletePartition(it.GetPoolId(), copySetId, it.GetPartitionId(), copysetMemberAddr);
+            topologyManager_->GetMetaserverClient()->DeletePartition(it.GetPoolId(), copySetId, it.GetPartitionId(), copysetMemberAddr);
             continue;
         }
 
