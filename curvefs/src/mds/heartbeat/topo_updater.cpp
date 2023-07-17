@@ -229,7 +229,7 @@ void TopoUpdater::UpdatePartitionTopo(
                 LOG(ERROR) << "GetCopysetMembers failed, poolId = " << it.GetPoolId()
                         << ", copysetId = " << copySetId;
             }
-            topologyManager_->GetMetaserverClient()->DeletePartition(it.GetPoolId(), copySetId, it.GetPartitionId(), copysetMemberAddr);
+            topologyManager_->DeleteAbnormalPartition(it.GetPoolId(), copySetId, it.GetPartitionId(), copysetMemberAddr);
             continue;
         }
 

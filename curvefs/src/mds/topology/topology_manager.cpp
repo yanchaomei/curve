@@ -765,6 +765,11 @@ TopoStatusCode TopologyManager::DeletePartition(uint32_t partitionId) {
     return TopoStatusCode::TOPO_OK;
 }
 
+void TopologyManager::DeleteAbnormalPartition(uint32_t poolId, uint32_t copysetId, uint32_t partitionId,
+                             const std::set<std::string> &addrs){
+    auto fret = metaserverClient_->DeletePartition(poolId, copysetId, partitionId, addrs);
+}
+
 void TopologyManager::DeletePartition(const DeletePartitionRequest *request,
                                       DeletePartitionResponse *response) {
     uint32_t partitionId = request->partitionid();
